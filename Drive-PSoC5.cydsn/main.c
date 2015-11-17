@@ -10,24 +10,32 @@
  * ========================================
 */
 #include <project.h>
+#include "isr.h"
+#include "isrHandler.h"
 
 int main()
-{
-    // CyGlobalIntEnable; /* Enable global interrupts. */
-
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-    LED0_Write(0);
-    LED1_Write(1);
-    timer_clock_Start();
-    PWM_1_Start();
-    for(;;)
-    {
-        PWM_1_WriteCompare(1000);
-        LED0_Write(!LED0_Read());
-        LED1_Write(!LED1_Read());
-        CyDelay(1000);
-        PWM_1_WriteCompare(2000);
-        CyDelay(1000);
+{    
+    CyGlobalIntEnable; /* Enable global interrupts. */
+    UART0_Start();
+    RXISR_StartEx(uartRxIsr);
+    Clock_1_Start();
+    Drive_Start();
+    Gimbal_Start();
+    // TickTimer_Start(); - not using this yet.
+    
+    // TODO: I may need to increase the size of the uart rx buffer.
+    
+    while (1) {
+        // any events pending?
+        if (events) {
+            // uart rx handler
+            if (events & EVENT_UART0) {
+                uart0_eventHandler();
+            }
+           // else if (events & EVENT1) {
+           //     event1Handler();
+           // }
+        }
     }
 }
 
